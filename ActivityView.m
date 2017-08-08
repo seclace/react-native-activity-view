@@ -89,17 +89,16 @@ RCT_EXPORT_METHOD(show:(NSDictionary *)args)
     }];
 }
 
-RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
+RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args)
 {
     NSMutableArray *shareObject = [NSMutableArray array];
     NSString *text = args[@"text"];
     NSURL *url = args[@"url"];
-    NSObject *file = args[@"file"];
     NSArray *activitiesToExclude = args[@"exclude"];
 
     // Return if no args were passed
-    if (!text && !url && !image && !file) {
-        RCTLogError(@"[ActivityView] You must specify a text, url, image, imageBase64 and/or imageUrl.");
+    if (!text && !url) {
+        RCTLogError(@"[ActivityView] You must specify a text, url.");
         return;
     }
 
@@ -111,10 +110,6 @@ RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
         [shareObject addObject:url];
     }
 
-    if (image) {
-        [shareObject addObject:image];
-    }
-
     if (file) {
         [shareObject addObject:file];
     }
@@ -122,9 +117,7 @@ RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
 
     UIActivityViewController *activityView = [[UIActivityViewController alloc] initWithActivityItems:shareObject applicationActivities:nil];
 
-    activityView.excludedActivityTypes = activitiesToExclude
-        ? [self excludedActivitiesForKeys:activitiesToExclude]
-        : nil;
+    activityView.excludedActivityTypes = nil;
 
     // Display the Activity View
     UIViewController *ctrl = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
@@ -135,7 +128,7 @@ RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
      * defaults to centering the share popup on screen without any arrows.
      * refer: (https://github.com/facebook/react-native/commit/f35fbc2a145f0097142d08920e141ea0cce2c31c)
      */
-    if ([activityView respondsToSelector:@selector(popoverPresentationController)]) {
+    // if ([activityView respondsToSelector:@selector(popoverPresentationController)]) {
         activityView.popoverPresentationController.sourceView = ctrl.view;
         NSNumber *anchorViewTag = [RCTConvert NSNumber:args[@"anchor"]];
         if (anchorViewTag) {
@@ -146,7 +139,7 @@ RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
             activityView.popoverPresentationController.sourceRect = sourceRect;
             activityView.popoverPresentationController.permittedArrowDirections = 0;
         }
-    }
+    // }
     [ctrl presentViewController:activityView animated:YES completion:nil];
 }
 

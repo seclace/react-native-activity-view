@@ -89,7 +89,7 @@ RCT_EXPORT_METHOD(show:(NSDictionary *)args)
     }];
 }
 
-- (void) showWithOptions:(NSDictionary *)args image:(UIImage *)image
+RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args image:(UIImage *)image)
 {
     NSMutableArray *shareObject = [NSMutableArray array];
     NSString *text = args[@"text"];

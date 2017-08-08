@@ -15,86 +15,11 @@
 
 RCT_EXPORT_MODULE()
 
-// Map user passed array of strings to UIActivities
-- (NSArray*)excludedActivitiesForKeys:(NSArray*)passedKeys {
-    NSDictionary *activities = @{
-       @"postToFacebook": UIActivityTypePostToFacebook,
-       @"postToTwitter": UIActivityTypePostToTwitter,
-       @"postToWeibo": UIActivityTypePostToWeibo,
-       @"message": UIActivityTypeMessage,
-       @"mail": UIActivityTypeMail,
-       @"print": UIActivityTypePrint,
-       @"copyToPasteboard": UIActivityTypeCopyToPasteboard,
-       @"assignToContact": UIActivityTypeAssignToContact,
-       @"saveToCameraRoll": UIActivityTypeSaveToCameraRoll,
-       @"addToReadingList": UIActivityTypeAddToReadingList,
-       @"postToFlickr": UIActivityTypePostToFlickr,
-       @"postToVimeo": UIActivityTypePostToVimeo,
-       @"postToTencentWeibo": UIActivityTypePostToTencentWeibo,
-       @"airDrop": UIActivityTypeAirDrop
-    };
-
-    NSMutableArray *excludedActivities = [NSMutableArray new];
-
-    [passedKeys enumerateObjectsUsingBlock:^(NSString *activityName, NSUInteger idx, BOOL *stop) {
-        NSString *activity = [activities objectForKey:activityName];
-        if (!activity) {
-            RCTLogWarn(@"[ActivityView] Unknown activity to exclude: %@. Expected one of: %@", activityName, [activities allKeys]);
-            return;
-        }
-        [excludedActivities addObject:activity];
-    }];
-
-    return excludedActivities;
-}
-
-RCT_EXPORT_METHOD(show:(NSDictionary *)args)
-{
-    NSString *imageUrl = args[@"imageUrl"];
-    NSString *image = args[@"image"];
-    NSString *imageBase64 = args[@"imageBase64"];
-
-    __block UIImage *shareImage;
-
-    if (image) {
-      shareImage = [UIImage imageNamed:image];
-    }
-
-    if (imageBase64) {
-      @try {
-          NSData *decodedImage = [[NSData alloc] initWithBase64EncodedString:imageBase64
-                                                                     options:NSDataBase64DecodingIgnoreUnknownCharacters];
-          shareImage = [UIImage imageWithData:decodedImage];
-      } @catch (NSException *exception) {
-          RCTLogWarn(@"[ActivityView] Could not decode image");
-      }
-    }
-
-    if (!imageUrl) {
-      return [self showWithOptions:args image:shareImage];
-    }
-
-
-    __weak ActivityView *weakSelf = self;
-
-    [self.bridge.imageLoader loadImageWithURLRequest: [RCTConvert NSURLRequest: imageUrl]
-        callback:^(NSError *error, UIImage *image) {
-        if (!error) {
-            dispatch_async([weakSelf methodQueue], ^{
-                [weakSelf showWithOptions:args image:image];
-            });
-        } else {
-          RCTLogWarn(@"[ActivityView] Could not fetch image.");
-        }
-    }];
-}
-
 RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args)
 {
     NSMutableArray *shareObject = [NSMutableArray array];
     NSString *text = args[@"text"];
     NSURL *url = args[@"url"];
-    NSArray *activitiesToExclude = args[@"exclude"];
 
     // Return if no args were passed
     if (!text && !url) {
@@ -109,11 +34,6 @@ RCT_EXPORT_METHOD(showWithOptions:(NSDictionary *)args)
     if (url) {
         [shareObject addObject:url];
     }
-
-    if (file) {
-        [shareObject addObject:file];
-    }
-
 
     UIActivityViewController *activityView = [[UIActivityViewController alloc] initWithActivityItems:shareObject applicationActivities:nil];
 
